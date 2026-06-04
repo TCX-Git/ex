@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}数据导出 - 数据分析系统{% endblock %}
+
+{% block content %}
+<h3 class="mb-4"><i class="bi bi-download"></i> 数据导出</h3>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h5 id="export-rows" class="text-primary">-</h5>
+                <p class="text-muted mb-0">行数</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h5 id="export-cols" class="text-success">-</h5>
+                <p class="text-muted mb-0">列数</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5><i class="bi bi-file-earmark-spreadsheet text-success"></i> 清洗后数据 (CSV)</h5>
+                <p class="text-muted small">下载当前清洗后的数据为 CSV 格式，UTF-8 编码。</p>
+                <a href="/api/export/download/cleaned_csv" class="btn btn-success">
+                    <i class="bi bi-download"></i> 下载 CSV
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5><i class="bi bi-file-earmark-excel text-primary"></i> 清洗后数据 (Excel)</h5>
+                <p class="text-muted small">下载当前清洗后的数据为 Excel (.xlsx) 格式。</p>
+                <a href="/api/export/download/cleaned_excel" class="btn btn-primary">
+                    <i class="bi bi-download"></i> 下载 Excel
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5><i class="bi bi-calculator text-info"></i> 统计报告 (CSV)</h5>
+                <p class="text-muted small">下载描述性统计结果为 CSV 格式。</p>
+                <a href="/api/export/download/stats_csv" class="btn btn-info">
+                    <i class="bi bi-download"></i> 下载统计 CSV
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5><i class="bi bi-file-earmark-pdf text-warning"></i> 统计报告 (Excel)</h5>
+                <p class="text-muted small">下载描述性统计结果为 Excel (.xlsx) 格式，含数值统计和分类统计两个工作表。</p>
+                <a href="/api/export/download/stats_excel" class="btn btn-warning">
+                    <i class="bi bi-download"></i> 下载统计 Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(async function() {
+    try {
+        const resp = await fetch('/api/visualize/columns');
+        const data = await resp.json();
+        if (data.columns) {
+            document.getElementById('export-rows').textContent =
+                data.columns.length > 0 ? (data.columns[0].null_count + data.columns[0].unique_count || '?') : '?';
+        }
+    } catch(e) {}
+
+    try {
+        const resp = await fetch('/api/analyze/statistics');
+        const data = await resp.json();
+        if (data.statistics) {
+            const totalCols = (data.statistics.numeric_stats?.length || 0) +
+                              (data.statistics.categorical_stats?.length || 0);
+            document.getElementById('export-cols').textContent = totalCols;
+        }
+        if (data.numeric_cols) {
+            const nRows = data.numeric_cols.length > 0 ? '—' : '—';
+        }
+    } catch(e) {}
+
+    // Get row count from preview
+    try {
+        const resp = await fetch('/api/clean/info');
+        const data = await resp.json();
+        if (data.preview_data) {
+            document.getElementById('export-rows').textContent = data.preview_data.length +
+                (data.preview_data.length >= 100 ? '+' : '');
+        }
+        if (data.column_info) {
+            document.getElementById('export-cols').textContent = data.column_info.columns.length;
+        }
+    } catch(e) {}
+})();
+</script>
+{% endblock %}

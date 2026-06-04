@@ -1,0 +1,126 @@
+/* === Upload Zone === */
+.upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+.upload-zone:hover {
+    border-color: #0d6efd;
+    background-color: #f0f7ff;
+}
+.upload-zone-active {
+    border-color: #0d6efd !important;
+    background-color: #e8f0fe !important;
+}
+
+/* === Step Indicator === */
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    margin-bottom: 1.5rem;
+}
+.step-indicator .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background: #e9ecef;
+    color: #6c757d;
+    transition: all 0.2s;
+}
+.step-indicator .step.completed {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+.step-indicator .step.active {
+    background: #0d6efd;
+    color: #fff;
+}
+
+/* === Preview Table === */
+.preview-table-wrapper {
+    max-height: 500px;
+    overflow: auto;
+}
+.preview-table th {
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.preview-table td {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* === Chart Container === */
+.chart-container {
+    position: relative;
+    min-height: 350px;
+}
+.loading-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 8px;
+}
+
+/* === Cards === */
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    font-weight: 500;
+}
+
+/* === General === */
+body {
+    background-color: #f5f6fa;
+}
+.navbar {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+footer {
+    border-top: 1px solid #dee2e6;
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+/* === Form Tweaks === */
+.form-select[multiple] {
+    min-height: 100px;
+}
+
+/* === Alert Compact === */
+.alert {
+    border-radius: 8px;
+}
+
+/* === Badge in nav === */
+.nav-link .badge {
+    font-size: 0.65rem;
+}

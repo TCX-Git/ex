@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}数据分析 - 数据分析系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-cpu"></i> 数据分析</h3>
+    <div>
+        <a href="/visualize" class="btn btn-primary">
+            <i class="bi bi-bar-chart"></i> 可视化
+        </a>
+    </div>
+</div>
+
+<!-- Descriptive Statistics -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <i class="bi bi-calculator"></i> 描述性统计
+        <div class="spinner-border spinner-border-sm d-none" id="stats-spinner" role="status"></div>
+    </div>
+    <div class="card-body p-0" id="stats-container">
+        <p class="text-center p-4 text-muted">加载中...</p>
+    </div>
+</div>
+
+<!-- Correlation Matrix -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <i class="bi bi-diagram-3"></i> 相关性矩阵
+    </div>
+    <div class="card-body" id="corr-container">
+        <div id="corr-plot" style="min-height:300px;">
+            <p class="text-center p-4 text-muted">加载中...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Machine Learning -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <i class="bi bi-robot"></i> 机器学习分析
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="ml-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-kmeans" type="button">
+                    K-Means 聚类
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-regression" type="button">
+                    线性回归
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3" id="ml-tabs-content">
+            <!-- K-Means Tab -->
+            <div class="tab-pane fade show active" id="tab-kmeans">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <label class="form-label small">选择数值列</label>
+                            <select class="form-select form-select-sm" id="kmeans-columns" multiple size="5">
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">聚类数 (K): <span id="k-val-display">3</span></label>
+                            <input type="range" class="form-range" id="kmeans-k"
+                                   min="2" max="10" step="1" value="3">
+                        </div>
+                        <button class="btn btn-primary w-100" onclick="runKMeans()">
+                            <i class="bi bi-play-fill"></i> 运行 K-Means
+                        </button>
+                        <div id="kmeans-metrics" class="mt-3 small"></div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="chart-container" id="kmeans-plot-container">
+                            <div id="kmeans-plot" style="min-height:400px;"></div>
+                            <div class="loading-overlay d-none" id="kmeans-loading">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linear Regression Tab -->
+            <div class="tab-pane fade" id="tab-regression">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <label class="form-label small">目标变量 (Y)</label>
+                            <select class="form-select form-select-sm" id="lr-y-column">
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">特征变量 (X)</label>
+                            <select class="form-select form-select-sm" id="lr-x-columns" multiple size="5">
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">测试集比例: <span id="test-size-display">0.2</span></label>
+                            <input type="range" class="form-range" id="lr-test-size"
+                                   min="0.1" max="0.4" step="0.05" value="0.2">
+                        </div>
+                        <button class="btn btn-primary w-100" onclick="runLinearRegression()">
+                            <i class="bi bi-play-fill"></i> 运行线性回归
+                        </button>
+                        <div id="lr-metrics" class="mt-3 small"></div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="chart-container" id="lr-plot-container">
+                            <div id="lr-plot" style="min-height:400px;"></div>
+                            <div class="loading-overlay d-none" id="lr-loading">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/analyze.js') }}"></script>
+{% endblock %}

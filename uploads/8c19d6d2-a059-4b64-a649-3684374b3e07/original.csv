@@ -1,0 +1,16 @@
+name,age,salary,department,experience,score
+Alice,25,55000,Sales,2,85
+Bob,30,65000,Engineering,5,92
+Charlie,22,48000,Sales,1,78
+David,35,85000,Engineering,10,95
+Eve,28,62000,Marketing,4,88
+Frank,40,95000,Engineering,15,91
+Grace,27,,Marketing,3,82
+Henry,33,72000,Sales,7,
+Ivy,24,51000,Marketing,2,86
+Jack,45,,Engineering,20,93
+Kate,29,67000,Sales,6,89
+Leo,31,78000,Engineering,8,94
+Mia,26,54000,Marketing,3,81
+Nick,38,88000,Engineering,12,90
+Olivia,23,49000,Sales,1,77

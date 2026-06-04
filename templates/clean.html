@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}数据清洗 - 数据分析系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-broom"></i> 数据清洗</h3>
+    <div>
+        <span class="badge bg-info me-2" id="row-count-badge">加载中...</span>
+        <button class="btn btn-outline-danger btn-sm" onclick="resetData()">
+            <i class="bi bi-arrow-counterclockwise"></i> 重置为原始数据
+        </button>
+        <a href="/analyze" class="btn btn-primary">
+            <i class="bi bi-cpu"></i> 开始分析
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Preview Table -->
+        <div class="card shadow-sm" id="data-preview-container">
+            <div class="card-header">
+                <i class="bi bi-table"></i> 数据预览
+                <div class="spinner-border spinner-border-sm d-none" id="preview-spinner" role="status"></div>
+            </div>
+            <div class="card-body p-0 preview-table-wrapper" id="preview-table-body">
+                <p class="text-center p-4 text-muted">加载中...</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <!-- Cleaning Operations -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-tools"></i> 清洗操作
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="clean-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-missing" type="button">
+                            缺失值
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-duplicates" type="button">
+                            重复值
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-outliers" type="button">
+                            异常值
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-type" type="button">
+                            类型转换
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" id="clean-tabs-content">
+                    <!-- Missing Values Tab -->
+                    <div class="tab-pane fade show active" id="tab-missing">
+                        <div class="mb-2">
+                            <label class="form-label small">操作方式</label>
+                            <select class="form-select form-select-sm" id="missing-method">
+                                <option value="drop_missing">删除含缺失值的行</option>
+                                <option value="fill_missing">填充缺失值</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">目标列 (留空=全部列)</label>
+                            <select class="form-select form-select-sm" id="missing-columns" multiple size="4">
+                            </select>
+                        </div>
+                        <div id="fill-options" style="display:none;">
+                            <div class="mb-2">
+                                <label class="form-label small">填充方式</label>
+                                <select class="form-select form-select-sm" id="fill-method">
+                                    <option value="mean">均值 (Mean)</option>
+                                    <option value="median">中位数 (Median)</option>
+                                    <option value="mode">众数 (Mode)</option>
+                                    <option value="constant">固定值</option>
+                                    <option value="ffill">前向填充</option>
+                                    <option value="bfill">后向填充</option>
+                                </select>
+                            </div>
+                            <div class="mb-3" id="fill-value-group" style="display:none;">
+                                <label class="form-label small">填充值</label>
+                                <input type="text" class="form-control form-control-sm" id="fill-value" placeholder="输入填充值">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="applyCleaning('missing')">
+                            <i class="bi bi-check-lg"></i> 应用
+                        </button>
+                    </div>
+
+                    <!-- Duplicates Tab -->
+                    <div class="tab-pane fade" id="tab-duplicates">
+                        <div class="mb-3">
+                            <label class="form-label small">基于列去重 (留空=全部列)</label>
+                            <select class="form-select form-select-sm" id="dup-columns" multiple size="4">
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="applyCleaning('duplicates')">
+                            <i class="bi bi-check-lg"></i> 删除重复行
+                        </button>
+                    </div>
+
+                    <!-- Outliers Tab -->
+                    <div class="tab-pane fade" id="tab-outliers">
+                        <div class="mb-2">
+                            <label class="form-label small">检测方法</label>
+                            <select class="form-select form-select-sm" id="outlier-method">
+                                <option value="iqr">IQR (四分位距)</option>
+                                <option value="zscore">Z-Score</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">处理方式</label>
+                            <select class="form-select form-select-sm" id="outlier-action">
+                                <option value="detect">仅检测</option>
+                                <option value="remove">删除异常行</option>
+                                <option value="cap">截断 (Cap)</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">目标列 (数值列)</label>
+                            <select class="form-select form-select-sm" id="outlier-columns" multiple size="4">
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">阈值: <span id="threshold-val">1.5</span></label>
+                            <input type="range" class="form-range" id="outlier-threshold"
+                                   min="0.5" max="5" step="0.5" value="1.5">
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="applyCleaning('outliers')">
+                            <i class="bi bi-check-lg"></i> 应用
+                        </button>
+                    </div>
+
+                    <!-- Type Conversion Tab -->
+                    <div class="tab-pane fade" id="tab-type">
+                        <div class="mb-2">
+                            <label class="form-label small">目标列</label>
+                            <select class="form-select form-select-sm" id="type-column">
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">目标类型</label>
+                            <select class="form-select form-select-sm" id="type-target">
+                                <option value="int">整数 (int)</option>
+                                <option value="float">浮点数 (float)</option>
+                                <option value="str">字符串 (str)</option>
+                                <option value="datetime">日期时间 (datetime)</option>
+                                <option value="category">分类 (category)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="applyCleaning('type')">
+                            <i class="bi bi-check-lg"></i> 转换
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result feedback -->
+                <div class="mt-3">
+                    <div id="clean-result" class="alert alert-success py-2 small" style="display:none;"></div>
+                    <div id="clean-error" class="alert alert-danger py-2 small" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/clean.js') }}"></script>
+{% endblock %}

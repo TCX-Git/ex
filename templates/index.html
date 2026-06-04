@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}上传数据 - 数据分析系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body text-center p-5">
+                <h3 class="card-title mb-3">
+                    <i class="bi bi-cloud-upload text-primary" style="font-size: 3rem;"></i>
+                </h3>
+                <h4>上传数据文件</h4>
+                <p class="text-muted">支持 CSV (.csv) 和 Excel (.xlsx, .xls) 格式</p>
+                <p class="text-muted small">文件大小限制: 100MB</p>
+
+                <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+                    <div class="upload-zone my-4 p-5" id="upload-zone">
+                        <i class="bi bi-file-earmark-arrow-up" style="font-size: 2.5rem; color: #6c757d;"></i>
+                        <p class="mt-2 mb-0 text-muted">拖拽文件到此处，或点击下方选择文件</p>
+                    </div>
+                    <div class="mb-3">
+                        <input type="file" name="file" id="file-input"
+                               class="form-control" accept=".csv,.xls,.xlsx"
+                               onchange="onFileSelected(this)" required>
+                    </div>
+                    <div id="file-info" class="mb-3 text-muted" style="display:none;"></div>
+                    <button type="submit" class="btn btn-primary btn-lg px-5" id="upload-btn" disabled>
+                        <i class="bi bi-upload"></i> 上传并分析
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> 使用说明
+            </div>
+            <div class="card-body">
+                <ol class="mb-0 small">
+                    <li><strong>上传</strong> — 选择 CSV 或 Excel 数据文件</li>
+                    <li><strong>预览</strong> — 查看数据概览和列信息</li>
+                    <li><strong>清洗</strong> — 处理缺失值、重复值、异常值、类型转换</li>
+                    <li><strong>分析</strong> — 描述性统计 + K-Means聚类 / 线性回归</li>
+                    <li><strong>可视化</strong> — 直方图、散点图、柱状图、折线图</li>
+                    <li><strong>导出</strong> — 下载清洗后数据和统计结果</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    const zone = document.getElementById('upload-zone');
+    const input = document.getElementById('file-input');
+    const btn = document.getElementById('upload-btn');
+    const info = document.getElementById('file-info');
+
+    window.onFileSelected = function(el) {
+        if (el.files.length > 0) {
+            const f = el.files[0];
+            info.style.display = 'block';
+            info.innerHTML = '<i class="bi bi-file-earmark-check text-success"></i> ' +
+                f.name + ' (' + formatFileSize(f.size) + ')';
+            btn.disabled = false;
+        } else {
+            info.style.display = 'none';
+            btn.disabled = true;
+        }
+    };
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        zone.addEventListener(evt, function(e) {
+            e.preventDefault();
+            zone.classList.add('upload-zone-active');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(evt => {
+        zone.addEventListener(evt, function(e) {
+            e.preventDefault();
+            zone.classList.remove('upload-zone-active');
+        });
+    });
+
+    zone.addEventListener('drop', function(e) {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            input.files = files;
+            onFileSelected(input);
+        }
+    });
+
+    zone.addEventListener('click', function() {
+        input.click();
+    });
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+})();
+</script>
+{% endblock %}

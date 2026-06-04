@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}数据可视化 - 数据分析系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-bar-chart"></i> 数据可视化</h3>
+    <a href="/export" class="btn btn-primary">
+        <i class="bi bi-download"></i> 导出数据
+    </a>
+</div>
+
+<div class="row">
+    <!-- Left Sidebar: Chart Controls -->
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-sliders"></i> 图表设置
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label small">图表类型</label>
+                    <select class="form-select form-select-sm" id="chart-type">
+                        <option value="histogram">直方图 (Histogram)</option>
+                        <option value="scatter">散点图 (Scatter)</option>
+                        <option value="bar">柱状图 (Bar)</option>
+                        <option value="line">折线图 (Line)</option>
+                    </select>
+                </div>
+
+                <!-- Histogram Params -->
+                <div id="params-histogram" class="chart-params">
+                    <div class="mb-2">
+                        <label class="form-label small">选择列</label>
+                        <select class="form-select form-select-sm" id="hist-column"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">分组数 (Bins): <span id="hist-bins-val">30</span></label>
+                        <input type="range" class="form-range" id="hist-bins" min="5" max="100" value="30">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">颜色</label>
+                        <select class="form-select form-select-sm" id="hist-color">
+                            <option value="">默认蓝</option>
+                            <option value="#0d6efd">蓝色</option>
+                            <option value="#198754">绿色</option>
+                            <option value="#dc3545">红色</option>
+                            <option value="#ffc107">黄色</option>
+                            <option value="#6f42c1">紫色</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Scatter Params -->
+                <div id="params-scatter" class="chart-params" style="display:none;">
+                    <div class="mb-2">
+                        <label class="form-label small">X 轴列</label>
+                        <select class="form-select form-select-sm" id="scatter-x"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Y 轴列</label>
+                        <select class="form-select form-select-sm" id="scatter-y"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">颜色映射列 (可选)</label>
+                        <select class="form-select form-select-sm" id="scatter-color">
+                            <option value="">无</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">大小映射列 (可选)</label>
+                        <select class="form-select form-select-sm" id="scatter-size">
+                            <option value="">无</option>
+                        </select>
+                    </div>
+                    <div class="mb-2 form-check">
+                        <input type="checkbox" class="form-check-input" id="scatter-trendline">
+                        <label class="form-check-label small">显示趋势线</label>
+                    </div>
+                </div>
+
+                <!-- Bar Params -->
+                <div id="params-bar" class="chart-params" style="display:none;">
+                    <div class="mb-2">
+                        <label class="form-label small">X 轴列 (分组)</label>
+                        <select class="form-select form-select-sm" id="bar-x"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Y 轴列 (数值)</label>
+                        <select class="form-select form-select-sm" id="bar-y"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">聚合函数</label>
+                        <select class="form-select form-select-sm" id="bar-agg">
+                            <option value="mean">均值</option>
+                            <option value="sum">求和</option>
+                            <option value="count">计数</option>
+                            <option value="median">中位数</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Top N (留空=全部)</label>
+                        <input type="number" class="form-control form-control-sm" id="bar-topn"
+                               placeholder="如: 10" min="1">
+                    </div>
+                </div>
+
+                <!-- Line Params -->
+                <div id="params-line" class="chart-params" style="display:none;">
+                    <div class="mb-2">
+                        <label class="form-label small">X 轴列</label>
+                        <select class="form-select form-select-sm" id="line-x"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Y 轴列 (可多选)</label>
+                        <select class="form-select form-select-sm" id="line-y" multiple size="4"></select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100 mt-3" onclick="generateChart()">
+                    <i class="bi bi-play-fill"></i> 生成图表
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Chart Display -->
+    <div class="col-md-9">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up"></i> 图表</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="downloadChart()" id="download-btn" disabled>
+                    <i class="bi bi-download"></i> 下载PNG
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" id="chart-container">
+                    <div id="main-chart" style="min-height:500px;">
+                        <p class="text-center pt-5 text-muted">
+                            <i class="bi bi-arrow-left" style="font-size:2rem;"></i><br>
+                            选择图表类型和参数，点击"生成图表"
+                        </p>
+                    </div>
+                    <div class="loading-overlay d-none" id="chart-loading">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/visualize.js') }}"></script>
+{% endblock %}
